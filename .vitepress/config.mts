@@ -8,6 +8,7 @@ const enSidebar = [
       { text: 'Installation', link: '/docs/installation' },
       { text: 'Configuration', link: '/docs/configuration' },
       { text: 'Command line', link: '/docs/cli' },
+      { text: 'Migration', link: '/docs/migration' },
     ],
   },
   {
@@ -51,6 +52,7 @@ const faSidebar = [
       { text: 'نصب', link: '/fa/docs/installation' },
       { text: 'پیکربندی', link: '/fa/docs/configuration' },
       { text: 'خط فرمان', link: '/fa/docs/cli' },
+      { text: 'مهاجرت', link: '/fa/docs/migration' },
     ],
   },
   {

@@ -65,7 +65,7 @@ Then open `http://<your-server>:8000/dashboard/`. From here, the
 
 ```bash
 sudo zagros update            # newest release
-sudo zagros update --version v1.0.0-alpha.9.3
+sudo zagros update
 ```
 
 `update` is not `docker compose pull`. It takes a backup first, pulls the new
@@ -74,7 +74,7 @@ automatically if the panel does not come back healthy**. To go back by hand:
 
 ```bash
 sudo zagros advanced rollback            # previous version
-sudo zagros advanced rollback --to v1.0.0-alpha.9.2
+sudo zagros advanced rollback --to
 ```
 
 ## Checking the result

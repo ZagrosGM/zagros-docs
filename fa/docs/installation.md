@@ -64,7 +64,7 @@ sudo zagros advanced create-admin
 
 ```bash
 sudo zagros update            # جدیدترین نسخه
-sudo zagros update --version v1.0.0-alpha.9.3
+sudo zagros update
 ```
 
 `update` معادلِ `docker compose pull` نیست: اول پشتیبان می‌گیرد، بعد ایمیج را
@@ -73,7 +73,7 @@ sudo zagros update --version v1.0.0-alpha.9.3
 
 ```bash
 sudo zagros advanced rollback            # نسخهٔ قبلی
-sudo zagros advanced rollback --to v1.0.0-alpha.9.2
+sudo zagros advanced rollback --to
 ```
 
 ## بررسیِ نتیجه

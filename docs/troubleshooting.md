@@ -13,7 +13,7 @@ sudo zagros logs        # what the panel is saying right now
 | Symptom | Likely cause | What to do |
 |---|---|---|
 | The panel does not come up | Port already taken, or a failed migration | `zagros logs`, then `zagros doctor`; `zagros repair` fixes the common ones (directories, env, image, container, schema) |
-| `503 admin authentication stack unavailable` | The panel is still starting, or the database is unreachable | Wait for health, then `zagros doctor`; from `1.0.0-alpha.9.3` the reason is logged instead of swallowed |
+| `503 admin authentication stack unavailable` | The panel is still starting, or the database is unreachable | Wait for health, then `zagros doctor`; the reason is logged instead of swallowed |
 | An error about the JWT secret being missing | Migrations have not run on this database | `zagros advanced migrate` |
 | A node never pairs | Ports `62050`/`62051` not reachable, the token was already used, or the agent was reinstalled | Check reachability from the panel; if the agent was reinstalled, **rotate** the token (the old one is spent) |
 | A node pairs but serves nothing | Its core has no configuration yet, or the account list has not converged | Open the node's **Cores** tab; accounts converge within 30 seconds — `zagros logs \| grep accounts` |
