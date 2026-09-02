@@ -30,7 +30,12 @@ Options:
 | Option | Effect |
 |---|---|
 | `--database sqlite\|mysql\|mariadb\|postgresql` | pick the database backend (default: SQLite) |
-| `--version <tag>` | install a specific release instead of the newest |
+| `--version <tag>` | pin one release instead of the floating `latest` image tag |
+
+Without `--version` the panel runs the `latest` image tag, which every
+**stable** release moves forward — so `sudo zagros update` follows releases
+without any pinning. `zagros status` and `zagros version` always show which
+release `latest` currently is on your host.
 
 The bootstrap is deliberately thin: it fetches the management CLI that matches
 the requested ref and hands over to it, so what you install is always the CLI
@@ -64,8 +69,8 @@ Then open `http://<your-server>:8000/dashboard/`. From here, the
 ## Updating
 
 ```bash
-sudo zagros update            # newest release
-sudo zagros update
+sudo zagros update                      # follow the floating latest tag (stable releases)
+sudo zagros update --version v1.0.0     # pin one release
 ```
 
 `update` is not `docker compose pull`. It takes a backup first, pulls the new

@@ -71,7 +71,7 @@ sudo zagros restart        # .env فقط هنگامِ ساختِ دوبارهٔ 
 
 | متغیّر | پیش‌فرض | معنا |
 |---|---|---|
-| `SUBSCRIPTION_TEMPLATE` | `subscription/index.html` | قالبِ Jinja2 صفحهٔ اشتراک (نامِ قدیمی: `SUBSCRIPTION_PAGE_TEMPLATE`). |
+| `SUBSCRIPTION_TEMPLATE` | `subscription/index.html` | تنظیمِ قدیمیِ (مرزبان)؛ پذیرفته می‌شود اما برای صفحه‌ای که مشترکان می‌بینند **به کار نمی‌رود** — آن صفحه از *Subscriptions → subscription page template* در خودِ پنل مدیریت می‌شود (ببینید [صفحهٔ اشتراکِ دلخواه](../examples/subscription-page.md)). نامِ قدیمی: `SUBSCRIPTION_PAGE_TEMPLATE`. |
 | `HOME_PAGE_TEMPLATE` | `home/index.html` | قالبِ صفحهٔ اصلیِ پنل. |
 | `CUSTOM_TEMPLATES_DIRECTORY` | *(خالی)* | پوشه‌ای که **پیش از** قالب‌های داخلی جست‌وجو می‌شود. |
 | `CLASH_SUBSCRIPTION_TEMPLATE` | `clash/default.yml` | پروفایلِ Clash. |

@@ -17,13 +17,13 @@ scripts keep working.
 | `restart` | recreate the panel — always applies `.env` edits |
 | `status` | services, image, health and the core table |
 | `logs [svc] [--tail N]` | follow the panel logs |
-| `update` | pre-backup → pull → migrate → health, with automatic rollback |
+| `update [--version <tag>]` | pre-backup → pull → migrate → health, with automatic rollback; follows the `latest` image tag unless a release is pinned |
 | `cores` | installed cores: state, version, health |
 | `cores install\|update\|uninstall\|reload <core>` | manage one core (`--version X` pins a release) |
 | `env [show\|edit\|get K\|set K V]` | the `.env` — the single source of truth |
 | `backup [--logs]` | full backup: database, config, certificates, keys, cores |
 | `restore <file\|latest>` | restore a backup |
-| `version` | CLI, image, panel and latest-release versions |
+| `version` | CLI, image tag (and the release behind `latest`), panel and newest-release versions |
 | `help` | the help text |
 
 ### Cores

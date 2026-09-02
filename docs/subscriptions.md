@@ -62,18 +62,32 @@ generate before you save.
 
 ## Designing the page
 
-The portal page is yours to replace: upload an HTML template, select it, and
-subscribers see it instead of the built-in page. Templates are Jinja2 with
-variables like <code v-pre>{{ user.username }}</code>, <code v-pre>{{ links }}</code> and
-<code v-pre>{{ format_bytes(used_bytes) }}</code>, and a template that fails to render falls back
-to the built-in page — a subscriber never sees a broken page.
+The portal page is yours to replace: upload an HTML template in
+*Subscriptions → subscription page template* and subscribers see it instead
+of the built-in page. The upload is validated (syntax plus a test render) and
+becomes the active page at once; **preview** shows it with sample data or as
+any real user; a template that fails to render later falls back to the
+built-in page and the reason is shown next to the picker — a subscriber never
+sees a broken page.
+
+A template sees **everything the cores deliver**, not only share links:
+`sections` carries the xray / sing-box links, the OpenVPN and WireGuard config
+**files** (with `data_uri()` and `qr_svg()` helpers for download buttons and
+QR codes), the SSH / SoftEther / PPTP credential tables and the cores' notes,
+plus `import_links` for one-tap "add to app" buttons. Templates are Jinja2 and
+render the way Marzban's do (no auto-escaping, the `bytesformat` / `datetime`
+filters, `now()`), with <code v-pre>{{ user.links }}</code>,
+<code v-pre>{{ user.subscription_url }}</code>, <code v-pre>{{ user.used_traffic }}</code>
+and the rest of the Marzban names available — a Marzban template works
+unchanged.
 
 Two places to read:
 
-* [Custom subscription page](../examples/subscription-page.md) — a worked example,
-  step by step.
+* [Custom subscription page](../examples/subscription-page.md) — the complete
+  variable reference, a multi-protocol example template and the API.
 * The **download starter** button in the panel hands you a complete, working
-  template with the variables documented in a comment.
+  template that already renders every protocol with copy / QR / download /
+  import buttons — edit its CSS and markup.
 
 ## Legacy URLs
 

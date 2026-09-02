@@ -30,7 +30,12 @@ sudo bash -c "$(curl -fsSL \
 | گزینه | اثر |
 |---|---|
 | `--database sqlite\|mysql\|mariadb\|postgresql` | انتخابِ پایگاه‌داده (پیش‌فرض: SQLite) |
-| `--version <tag>` | نصبِ یک نسخهٔ مشخّص به‌جای جدیدترین |
+| `--version <tag>` | پین‌کردنِ یک نسخهٔ مشخّص به‌جای تگِ شناورِ `latest` |
+
+بدونِ `--version`، پنل با تگِ `latest` ایمیج اجرا می‌شود که هر انتشارِ **پایدار**
+آن را جلو می‌برد — پس `sudo zagros update` بدونِ هیچ پین‌کردنی انتشارها را دنبال
+می‌کند. `zagros status` و `zagros version` همیشه نشان می‌دهند `latest` روی سرورِ
+شما در حالِ حاضر کدام نسخه است.
 
 این اسکریپتِ آغازین عمداً لاغر است: خط‌فرمانِ مدیریتیِ همان نسخه را می‌گیرد و کار را
 به آن می‌سپارد — پس همیشه همان CLI نصب می‌شود که به آن نسخه تعلق دارد.
@@ -63,8 +68,8 @@ sudo zagros advanced create-admin
 ## به‌روزرسانی
 
 ```bash
-sudo zagros update            # جدیدترین نسخه
-sudo zagros update
+sudo zagros update                      # دنبال‌کردنِ تگِ شناورِ latest (انتشارهای پایدار)
+sudo zagros update --version v1.0.0     # پین‌کردنِ یک نسخه
 ```
 
 `update` معادلِ `docker compose pull` نیست: اول پشتیبان می‌گیرد، بعد ایمیج را

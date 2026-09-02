@@ -73,7 +73,7 @@ silently ignored.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `SUBSCRIPTION_TEMPLATE` | `subscription/index.html` | Jinja2 template for the subscription page (legacy alias: `SUBSCRIPTION_PAGE_TEMPLATE`). |
+| `SUBSCRIPTION_TEMPLATE` | `subscription/index.html` | Legacy (Marzban) setting, accepted but **not used** for the page subscribers see — that page is managed from *Subscriptions → subscription page template* in the panel (see [Custom subscription page](../examples/subscription-page.md)). Legacy alias: `SUBSCRIPTION_PAGE_TEMPLATE`. |
 | `HOME_PAGE_TEMPLATE` | `home/index.html` | Template for the panel home page. |
 | `CUSTOM_TEMPLATES_DIRECTORY` | *(empty)* | A directory searched **before** the built-in templates. |
 | `CLASH_SUBSCRIPTION_TEMPLATE` | `clash/default.yml` | Clash profiles. |
