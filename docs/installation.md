@@ -41,6 +41,13 @@ The bootstrap is deliberately thin: it fetches the management CLI that matches
 the requested ref and hands over to it, so what you install is always the CLI
 belonging to that release.
 
+With `--database mysql|mariadb|postgresql` the installer brings the database
+service up first, waits until it accepts connections, creates the second
+(legacy) database, and only then starts the panel — which migrates the schema
+and boots on its first attempt. A fresh managed-database install takes about
+half a minute more than SQLite; if *Waiting for the panel* lasts much longer,
+`sudo zagros logs` shows what the panel is waiting for.
+
 ## What you end up with
 
 | Path | Contents |

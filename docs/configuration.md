@@ -62,12 +62,22 @@ the older stack.
 | `SQLALCHEMY_DATABASE_URL` | `sqlite:///db.sqlite3` | Legacy database. |
 | `SQLALCHEMY_POOL_SIZE` | `10` | Connection pool size. |
 | `SQLIALCHEMY_MAX_OVERFLOW` | `30` | Extra connections allowed beyond the pool size. |
+| `ZAGROS_DB_WAIT_SECONDS` | `180` | How long the panel container waits for the SQL server(s) above to accept connections before it runs migrations and boots. Only matters for MySQL/MariaDB/PostgreSQL — SQLite never waits. |
 
 ::: tip
 The spelling `SQLIALCHEMY_MAX_OVERFLOW` is a typo that shipped in an early
 release and is still accepted — keep it exactly like that, or the setting is
 silently ignored.
 :::
+
+With a managed database service (`--database mysql|mariadb|postgresql`) the
+panel container starts by waiting for that server (`ZAGROS_DB_WAIT_SECONDS`),
+then migrates the schema, then serves. If the server never answers the panel
+still boots, reports the platform layer as unavailable (HTTP 503 on the
+Zagros endpoints) and recovers on its own the moment the database is
+reachable — no restart needed. A server that answers with a *configuration*
+error (wrong password, unknown database) is not waited for: the error is
+logged at once so you can fix `.env`.
 
 ## Subscription and templates
 
