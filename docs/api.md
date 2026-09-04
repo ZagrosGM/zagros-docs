@@ -42,6 +42,7 @@ deployed, not just which users exist. A normal admin gets `403` there.
 | `GET` | `/api/zagros/nodes` | Nodes and their status |
 | `GET` | `/api/zagros/cores` | Core states, versions and health |
 | `GET`/`PUT` | `/api/zagros/settings/portal` | Portal and subscription settings |
+| `GET`/`PUT` | `/api/zagros/settings/api-defaults` | Which cores a user created without `core_access` (bots) receives |
 | `GET` | `/api/zagros/users/online` | Per-user presence states **and** their counts |
 | `GET` | `/api/zagros/subscription/templates` | Uploaded subscription page templates |
 | `GET` | `/api/zagros/certificates` | The managed certificate store |
@@ -67,6 +68,33 @@ curl -s -H "Authorization: Bearer $TOKEN" \
   https://panel.example.com/api/user/alice \
   | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d["subscription_url"])'
 ```
+
+`subscription_url` is the **public** link — it carries the domain, scheme,
+port and path saved under *Settings → Subscription* (falling back to
+`SUBSCRIPTION_URL_PREFIX` / `DOMAIN` from `.env`). A bot can hand it to the
+buyer as is; it does not have to prefix it with the panel address. When the
+panel has no public identity at all the field is the relative `/sub/<token>`.
+
+## Bots written for Marzban — which cores a user gets
+
+Zagros keeps Marzban's request shape, so Mirza-style bots and shops work
+unchanged. Such clients never send Zagros' `core_access` field (the per-core
+inbound grants a multi-core panel adds on top of xray `proxies`). What a user
+created **without** that field receives is a panel-wide policy — *Settings →
+General → API defaults (bots & shops)*, or the API:
+
+```bash
+# every enabled non-xray core (default) | xray only | a fixed selection
+curl -s -X PUT https://panel.example.com/api/zagros/settings/api-defaults \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"core_access": "all"}'
+#  -d '{"core_access": "none"}'
+#  -d '{"core_access": {"sing-box": ["hy2-main"], "wireguard": ["wg0"]}}'
+```
+
+`GET /api/zagros/settings/api-defaults` shows the policy and the grants it
+resolves to right now. A request that *does* carry `core_access` — the
+dashboard, Zagros-aware scripts — is always taken literally, even `{}`.
 
 ## Worked example — presence
 

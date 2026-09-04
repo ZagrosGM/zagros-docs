@@ -60,6 +60,13 @@ in inside it. Use it when you do not want links leaving your control.
 Use **test configuration** in the same screen to see the exact URL Zagros will
 generate before you save.
 
+These settings shape *every* place a link appears: the dashboard's copy/QR
+buttons, the portal page and the `subscription_url` field of the REST API
+(`POST /api/user`, `GET /api/user/{username}`, `GET /api/users`). A bot that
+reads that field therefore hands out the same link the panel shows — a
+dedicated subscription domain or port is honoured without any bot-side
+configuration.
+
 ## Designing the page
 
 The portal page is yours to replace: upload an HTML template in

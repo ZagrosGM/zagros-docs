@@ -17,6 +17,12 @@ every core assigned to them.
 **Templates** (user templates) store a reusable set of inbounds and limits, so
 creating the next user is one pick instead of ten fields.
 
+**Users created by a bot or shop** (Mirza and other Marzban-style clients) do
+not choose cores — their request only names xray proxies. Which other cores
+such a user receives is set once, under *Settings → General → API defaults
+(bots & shops)*: every enabled core (the default), xray only, or a fixed
+selection. See [REST API](./api.md#bots-written-for-marzban--which-cores-a-user-gets).
+
 ## Statuses
 
 | Status | Meaning | Who sets it |

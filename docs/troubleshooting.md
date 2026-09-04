@@ -25,6 +25,12 @@ sudo zagros logs        # what the panel is saying right now
 | My uploaded page template is ignored | The file is not on the server, or it failed to render | `docker compose logs zagros \| grep -i "subscription template"` — a broken template always falls back to the built-in page |
 | Certificate issuance fails | Port 80 is taken, or no ACME client is installed | The interface names the provider it found (certbot / acme.sh / lego); free port 80 and retry |
 | An update left the panel unhealthy | It should have rolled back by itself | `zagros advanced rollback`, and check `zagros logs` |
+| Signing in says *session expired* although the password is right | An old token from a previous session was still in the browser; background pollers hit `401` a moment before the new sign-in landed | Fixed in 1.0.3 — sign out and in once. A genuinely wrong password now says so explicitly |
+| Inbounds wizard: `['http_method', …] require header_type=http` on a TCP inbound | The form sent the HTTP-camouflage defaults with *header type: none* | Fixed in 1.0.3 — those fields are only shown (and sent) when header type is `http`; the path/Host/method/headers are ordinary wizard fields |
+| A bot-created user only has the xray core | Marzban-style clients never send `core_access` | *Settings → General → API defaults (bots & shops)* — the default `all` grants every enabled core; see [Users](./users.md) |
+| The link a bot shows points at the panel address, not the subscription domain | Older builds built `subscription_url` from `.env` only | 1.0.3 derives it from *Settings → Subscription*; re-read the user (`GET /api/user/{username}`) |
+| Support ticket: *the support bot refused the attachment* / HTTP 413 | The bot's web server keeps PHP's 2 MB upload limit | Attach a smaller file, or raise `upload_max_filesize` / `post_max_size` on the bot host |
+| Restoring a 3x-ui database says *request failed (500)* | An oversized per-user note (the client's IP history) overflowed a MySQL column | Fixed in 1.0.3 — the IP list is summarised; the Backup & restore page shows the real error text |
 
 ## Where things are
 
