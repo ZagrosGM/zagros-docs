@@ -64,7 +64,8 @@ Everything that must stay true over time is a job, not a manual step:
 | Node accounts sync | 30s | every node has the current account list |
 | Node reconnect | 45s | unpaired nodes finish pairing; failing nodes back off |
 | Bandwidth sync | 60s | pushed limits match the panel's decisions |
-| Device limits | 30s | device counts, presence and the unified online flag |
+| IP limits | 5s default | cross-core source-IP detection, timed VPN-port bans and unified online presence |
+| Device/HWID limits | request-time | strict subscription enrollment with `X-Device-ID` / `X-HWID` |
 | Core health check | 10s | a core that died is reported, and restarted where that is safe |
 | Review users | 10s | expiry, quota and status transitions |
 

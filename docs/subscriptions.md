@@ -8,8 +8,10 @@ https://panel.example.com/sub/<token>
 ```
 
 The `sub` segment is the **subscription path**, configurable in
-*Subscriptions → subscription path*. Already-issued links keep working forever,
-because the old paths stay as aliases.
+*Subscriptions → subscription path*. It may contain safe namespaces such as
+`sub/test` (1–32 characters total). The stable `/sub/<token>` and
+`/zagros/sub/<token>` aliases remain available; a previous *custom* path is not
+retained after you change it.
 
 ## Who gets what
 
@@ -46,7 +48,7 @@ the moment you do it, including ones already delivered to users.
 |---|---|
 | public domain / custom subdomain | The host part of every link |
 | scheme and public port | `https://host:port`, when the port is not the scheme's default |
-| subscription path | The URL segment before the token (`sub` by default) |
+| subscription path | One or more safe URL segments before the token (`sub` by default), e.g. `sub/test`; 1–32 characters total |
 | listener mode | `shared` (the panel's own port), `dedicated` (Zagros opens a second listener), or `external_proxy` (Nginx/Caddy owns the URL) |
 | TLS certificate | A managed certificate for the dedicated listener |
 | force HTTPS | Always advertise `https://` links |
