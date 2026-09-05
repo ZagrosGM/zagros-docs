@@ -29,8 +29,10 @@ produced.
 4. When a client fetches it, Zagros returns the format that client understands
    (raw links, Clash Meta, sing-box). When a browser opens it, they get the
    portal page.
-5. Usage, presence and device counts come back from the cores and nodes into
-   the same pipelines: quota, device limits, and the *online* indicator.
+5. Usage, presence and source-IP observations come back from cores and nodes
+   into the same pipelines: quota, IP limits, and the *online* indicator.
+   Device/HWID enrollment is separate and happens when a subscription is
+   retrieved.
 
 ## What changes when you add a node
 
