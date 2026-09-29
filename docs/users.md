@@ -24,6 +24,29 @@ v1.0.4; advanced operators can use
 `GET/PUT /api/zagros/settings/api-defaults`. See the
 [MirzaBot contract](./api.md#mirzabot-compatibility).
 
+## Delivery mode (access mode)
+
+Every user has a delivery mode — how they receive service:
+
+| Mode | Meaning |
+|---|---|
+| **Default** | No per-user override: the user follows the panel-wide **client auth mode** from *Subscriptions*. The panel re-evaluates this live, so flipping that setting moves every Default user at once. |
+| **Subscription** | The classic link: portal page + link list for client apps. |
+| **Application** | No configuration material is emitted; the user signs in to the official app (see [Applications](./applications.md)). |
+
+* Creating a user offers the selector (pre-selected **Default**).
+* The user editor's select applies the change instantly and shows the three
+  options.
+* The **Application login** card — app username, *Reissue*, grants and latest
+  builds — appears only when the user's *effective* mode is application
+  (explicit override, or Default while the panel-wide setting is application
+  login).
+
+Leaving application mode revokes the user's pending app authorities; the
+grant binding survives, so re-enabling restores access. Subscribers can rotate
+their own app password from the portal page with the *reissue* button — the
+new pair is shown once.
+
 ## Statuses
 
 | Status | Meaning | Who sets it |

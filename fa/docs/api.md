@@ -26,16 +26,22 @@ Authorization: Bearer <access_token>
 
 پاسخ ورود موفق شامل `access_token` و `token_type: "bearer"` است. عمر JWT با
 `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` تعیین می‌شود؛ پس از `401` توکن تازه بگیرید.
-عملیات نود، هسته، استقرار، پشتیبان، گواهی و بیشتر مسیرهای `/api/zagros/*` به
-ادمین **sudo** نیاز دارند. ادمین عادی فقط کاربران تحت مالکیت خودش را مدیریت
-می‌کند.
+
+چه کسی چه چیزی را صدا بزند:
+
+* **ادمین sudo** از هر بررسی دسترسی عبور می‌کند (مدیریتِ sudoerهای دیگر همچنان
+  فقط sudo است).
+* **ادمین معمولی** برای هر مسیرِ `/api/zagros/*` به مدخلِ متناظر در ماتریس
+  دسترسی (پایین همین صفحه) نیاز دارد — به‌طور پیش‌فرض (بدون ماتریسِ
+  ذخیره‌شده) ادمین عادی همهٔ بخش‌ها را دارد به‌جز همان مناطقِ فقط-sudo. عملیات
+  روی مسیرهای سازگارِ Marzban برای کاربران همان ادمین باقی می‌ماند.
 
 ## سطح‌های API
 
 | سطح | مسیر | احراز | کاربرد |
 |---|---|---|---|
 | ادمین سازگار با Marzban | `/api/*` | JWT ادمین؛ بعضی عملیات فقط sudo | ادمین‌ها، کاربران، inboundsِ Xray، آمار و نودهای سازگاری |
-| ادمین بومی زاگرس | `/api/zagros/*` | معمولاً JWT ادمین sudo | چندهسته‌ای، نود بومی، پورتال، routing، پشتیبان، امنیت و پشتیبانی |
+| ادمین بومی زاگرس | `/api/zagros/*` | JWT ادمین؛ ماتریس دسترسی تصمیم می‌گیرد (sudo عبور می‌کند) | چندهسته‌ای، اپلیکیشن/بیلد، نود بومی، پورتال، routing، پشتیبان، امنیت و پشتیبانی |
 | اشتراک | `/<subscription_path>/<token>` | توکن اشتراک | تحویل پورتال مرورگر و کانفیگ کلاینت |
 | کلاینت برنامه | `/client/v1/*` | اطلاعات ورود/توکن برنامه | پروفایل حالت login و تحویل امن کانفیگ هسته |
 
@@ -117,7 +123,8 @@ curl -fsS -X POST https://panel.example.com/api/user \
 | `status` | `active` یا `on_hold` | وضعیت هنگام ساخت؛ برای حالت عادی حذفش کنید. `on_hold` به `on_hold_expire_duration` و نداشتن expiry ثابت نیاز دارد |
 | `proxies` | object | تنظیم Xray برای `vmess`، `vless`، `trojan` و `shadowsocks`؛ تنظیم `{}` اطلاعات اتصال را خودکار می‌سازد |
 | `inbounds` | نگاشت پروتکل به آرایهٔ tag | انتخاب inboundهای Xray؛ حذف tagها برای یک proxy انتخاب‌شده یعنی همهٔ inboundهای فعال همان پروتکل |
-| `core_access` | نگاشت core id به آرایهٔ tag | grant صریح چندهسته‌ای؛ حذف فیلد یعنی policy پیش‌فرض API و `{}` صریح یعنی بدون grant اضافه |
+| `core_access` | نگاشت core id به آرایهٔ tag | grant صریح چندهسته‌ای؛ حذف فیلد یعنی policy پیش‌فرض API و `{}` صریح یعنی بدون grant اضافه. ادمین محدودشده فقط tagهای داخل لیست مجازش را می‌تواند نام ببرد |
+| `access_mode` | `default`، `subscription` یا `application` | حالت تحویلِ اختیاری هنگام ساخت. `default`/حذفِ فیلد یعنی override سرِ‌کاربر unset می‌ماند و کاربر از تنظیم سراسریِ Subscriptions پیروی می‌کند. بخش «ورود اپلیکیشن و حالت دسترسی» در همین صفحه را ببینید |
 | `expire` | ثانیهٔ صحیح Unix، `0` یا `null` | انقضا؛ صفر/null یعنی نامحدود |
 | `data_limit` | عدد صحیح بایت ≥ ۰ | سهمیهٔ کل؛ صفر/null یعنی نامحدود |
 | `data_limit_reset_strategy` | `no_reset`، `day`، `week`، `month`، `year` | برنامهٔ بازنشانی خودکار سهمیه |
@@ -184,6 +191,76 @@ curl -fsS -X POST https://panel.example.com/api/user \
 | `POST` | `/api/users/reset` | صفرکردن مصرف فعلی همهٔ کاربران؛ فقط sudo |
 | `GET` | `/api/users/usage?start=&end=` | مصرف تجمیعی کاربر/نود |
 | `GET`/`DELETE` | `/api/users/expired` | فهرست یا حذف کاربران در بازهٔ انقضا |
+
+### ورود اپلیکیشن و حالت دسترسی
+
+هر کاربر یک **حالت تحویل** دارد: لینک اشتراک، یا ورود داخل اپ رسمی. مقدارِ
+سرِ‌کاربر سه حالت دارد — `default` (پیروی از تنظیم سراسریِ Subscriptions که
+**زنده** resolve می‌شود)، `subscription` یا `application`. پس تغییرِ تنظیم
+سراسری بلافاصله روی همهٔ کاربرانِ `default` اعمال می‌شود؛ override صریح همیشه
+برنده است.
+
+| متد و مسیر | کاربرد |
+|---|---|
+| `POST /api/zagros/users/{user_id}/access-mode` | تعیین حالت: `{"mode": "default" \| "subscription" \| "application"}` |
+| `GET /api/zagros/users/{user_id}/application-overview` | وضعیت ورود اپلیکیشن یک کاربر (با username هم دارد) |
+| `POST /api/zagros/users/{user_id}/app-credentials` | صدور یا چرخش نام‌کاربری/رمز اپ |
+| `GET /api/zagros/users/by-username/{username}/subscription-url` | URL کپی/QR از منبعِ حقیقتِ تنظیمات پورتال |
+
+تعیین حالت:
+
+```bash
+curl -fsS -X POST "https://panel.example.com/api/zagros/users/16/access-mode" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"mode": "default"}'
+```
+
+```json
+{"user_id": 16, "username": "bli3bu7z",
+ "access_mode": "default", "effective_access_mode": "subscription"}
+```
+
+* `access_mode` حالت **خام** ذخیره‌شده است (`default` یعنی NULL و پیروی از
+  پنل)؛ `effective_access_mode` حالتی است که همین حالا resolve شده.
+* خروج از `application` (به `subscription` یا به `default` وقتی پیش‌فرض پنل
+  subscription است) دسترسی‌های در انتظارِ اپی کاربر را لغو می‌کند — توکن‌ها،
+  بلیت‌های فعال‌سازی، grantهای config. خودِ ردیف grant باقی می‌ماند تا
+  فعال‌سازیِ دوباره بدون bind جدید کار کند. پاسخ‌ها: `200` موفق، `404`
+  کاربر ناشناخته، `422` هر مقدار دیگر.
+
+صدور اعتبار اپ (کاربر را به همهٔ اپ‌های فعال متصل می‌کند و ورود را
+می‌سازد/می‌چرخاند):
+
+```bash
+curl -fsS -X POST "https://panel.example.com/api/zagros/users/16/app-credentials" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+```
+
+```json
+{"username": "u16.mgyhjnml", "password": "n9a_iOu_AcRcEkpte4bH"}
+```
+
+رمز فقط **یک‌بار** برگردانده می‌شود — فقط hash ذخیره می‌شود. endpoint خلاصه
+بدون راز `app_username` و `has_app_credentials` را گزارش می‌کند:
+
+```json
+{"user_id": 16, "username": "bli3bu7z",
+ "access_mode": "default", "effective_access_mode": "application",
+ "app_username": "u16.mgyhjnml", "has_app_credentials": true,
+ "grants": [{"application_id": "2751dadd-…", "name": "qr-app4", "bound_at": "…"}],
+ "latest_builds": {"2751dadd-…": {"build_id": "…", "version": "1.0.0",
+   "build_number": 7, "status": "…", "file_count": 5}}}
+```
+
+مشترک‌ها رمز اپ خود را از صفحهٔ پورتال عوض می‌کنند. URL اشتراک خودِ رازِ
+bearer است، پس دارندهٔ لینک می‌تواند:
+
+```
+POST /sub/{token}/reissue-app          # aliasها: /zagros/sub/… و /<sub_path>/…
+```
+
+ورودهای قدیمی فوراً می‌میرند؛ جفت جدید یک‌بار روی صفحه نشان داده می‌شود.
+راهنمای کامل اپ/بیلد در [اپلیکیشن‌ها](./applications.md) است.
 
 ### معنای سقف IP
 
@@ -304,7 +381,8 @@ API بومی از لایهٔ Mirza بزرگ‌تر است. سند OpenAPI تول
 | پورتال/اشتراک | `/api/zagros/settings/portal`؛ صدور token/URL زیر `/users`؛ list/upload/preview/starter/activate/delete قالب |
 | حضور/دستگاه/session | `/api/zagros/users/online`، `/sessions`، `/devices`، `/client-sessions` و مسیرهای revoke/delete |
 | گواهی/شبکه | `/api/zagros/certificates` شامل import، self-signed و ACME؛ تست/save/apply/status در `/settings/panel-network` |
-| کاربر/عملیات | bulk create، حذف براساس status، dashboard snapshot و legacy migration |
+| کاربر/عملیات | bulk create، حذف براساس status، مسیرهای access-mode/app-credentials/overview، dashboard snapshot و legacy migration |
+| اپلیکیشن/بیلد | `/api/zagros/applications` (CRUD، آیکون، کلیدها)، `/applications/{id}/grants`، `/applications/{id}/builds`؛ `/builds*`، `/build-credentials*`، `/builder/workers*` — [اپلیکیشن‌ها](./applications.md) |
 | پشتیبان/بازیابی | artifactها، create و service زیر `/api/zagros/backup/*`؛ `/restore/upload`، `/restore/inspect`، `/restore/apply` |
 | امنیت | `/api/zagros/security`، credentials، sessions و token lifetime |
 | پشتیبانی | `/api/zagros/support/config`، `/support/test`، `/support/ticket` |
@@ -321,6 +399,33 @@ API بومی از لایهٔ Mirza بزرگ‌تر است. سند OpenAPI تول
 URL اصلی `/<configured-path>/<token>` است. aliasهای پایدار `/sub/<token>` و
 `/zagros/sub/<token>` باقی می‌مانند. عوض‌کردن یک مسیر سفارشی به مسیر دیگر، مسیر
 سفارشی قبلی را حفظ نمی‌کند.
+
+## دسترسی‌های ادمین
+
+`POST /api/admin` و `PUT /api/admin/{username}` برای ادمین‌های غیر-sudo یک
+**سند دسترسی** می‌پذیرند (فیلد `permissions`؛ `null` یعنی پیش‌فرضِ پایین):
+
+```json
+{
+  "v": 1,
+  "sections": {
+    "users": "edit", "templates": "view", "subscriptions": "hidden",
+    "monitoring": "view"
+  },
+  "inbounds": ["VLESS TCP REALITY", "hy2-main"]
+}
+```
+
+| قاعده | رفتار |
+|---|---|
+| `sections` | برای هر بخشِ پنل یکی از `hidden` / `view` / `edit` (`overview`، `users`، `templates`، `subscriptions`، `applications`، `nodes`، `cores`، `routing`، `outbounds`، `inbounds`، `hosts`، `dns`، `certificates`، `monitoring`، `statistics`، `support`، `settings`، `advanced`). بخشِ غایب در سندِ ذخیره‌شده روی `edit` می‌ماند. |
+| `inbounds` | تنها tagهای اینباندی که این ادمین هنگام ساخت/ویرایش کاربر می‌تواند grant کند (`null` = نامحدود). `GET /api/zagros/inbounds` کاتالوگِ فیلترشده می‌دهد؛ tag غیرمجاز با `422` رد می‌شود و انتخابِ *خالی* — که معمولاً یعنی «همهٔ اینباندها» — برای ادمین محدود رد می‌شود. |
+| معنای `PUT` | اگر `permissions` حاضر باشد کل سند جایگزین می‌شود؛ حذفِ فیلد یعنی بدون تغییر؛ `null` صریح یعنی بازگشت به پیش‌فرض. |
+| اعمال | `GET`/`HEAD` روی یک بخش `view` می‌خواهد؛ هر متد دیگر `edit`. ادمین sudo از کل ماتریس عبور می‌کند. مدیریتِ ادمین‌ها هم فقط-sudo می‌ماند. |
+| `is_sudo` | `PUT /api/admin/{username}` حالا `false` را هم ذخیره می‌کند (تنزل). ادمین sudo می‌تواند sudoerِ **دیگر** را ویرایش کند؛ تنزلِ **خودش** با `403` رد می‌شود. |
+
+داشبورد همان ماتریس را آینه می‌کند: بخش مخفی از ناوبری حذف می‌شود و deeplink
+نمی‌پذیرد، و دکمه‌های نوشتنی جایی که ادمین `edit` ندارد برداشته می‌شوند.
 
 ## خطاها
 

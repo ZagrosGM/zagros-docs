@@ -8,11 +8,13 @@ colleague can manage their own users without seeing yours.
 | Kind | Can |
 |---|---|
 | **sudo** | Everything: other admins, nodes, cores, portal settings, the panel's own network settings. |
-| normal | Only the users they own — and within the limits you set for them. |
+| normal | Their own users, plus exactly the panel sections their [permission matrix](#permissions) grants — within the limits you set. |
 
-Most of the Zagros admin surface (`/api/zagros/*` — nodes, cores, portal
-settings, subscription templates, certificates) is **sudo only**. A normal
-admin simply does not see it.
+Admin **management** (creating/removing admins, promoting to sudo) stays
+sudo-only. Everything else under `/api/zagros/*` — nodes, cores, portal
+settings, subscription templates, certificates, applications — is available to
+a normal admin whose permission matrix allows it; by default (no matrix
+stored) a normal admin may use every section.
 
 ## Creating one
 
@@ -34,6 +36,38 @@ Fields:
 | traffic alloc limit (GB) | Cap on the **sum** of their users' data limits. |
 | traffic consume limit (GB) | Cap on the **sum** of their users' lifetime usage — crossing it suspends all of their users. |
 | telegram id / discord webhook | Where this admin's notifications go. |
+| permissions | Per-section access matrix + allowed inbounds for non-sudo admins (see below). Unset = every section, all inbounds. |
+
+## Permissions
+
+A non-sudo admin's reach is one document, editable any time from the same
+dialog:
+
+* **Panel sections** — for each of the eighteen sections (`overview`, `users`,
+  `templates`, `subscriptions`, `applications`, `nodes`, `cores`, `routing`,
+  `outbounds`, `inbounds`, `hosts`, `dns`, `certificates`, `monitoring`,
+  `statistics`, `support`, `settings`, `advanced`) pick one level:
+
+  | Level | The admin can |
+  |---|---|
+  | **Hidden** | Not see the section at all — it disappears from the navigation and cannot be deep-linked. |
+  | **View only** | Read it; every write is rejected (403). |
+  | **View + edit** | Use it fully. |
+
+* **Allowed inbounds** — either all inbounds, or an explicit tag list. A
+  restricted admin sees only those inbounds in the Users/Templates pickers,
+  and the API rejects user creates/modifies that name anything outside the
+  list (an *empty* inbound selection — "all" — is also rejected for them, so
+  a restricted admin can never escalate to everything).
+
+Enforcement lives in the API, not the interface: the dashboard merely mirrors
+what the server already enforces. sudo admins always have full access and can
+edit another sudoer's account — including demoting it to normal. A sudo admin
+cannot demote **themselves** (the last sudoer must not lock everyone out); do
+that from another sudo account or `zagros-cli`.
+
+See the [API contract for the document](./api.md#admin-permissions) if you
+provision admins from a bot.
 
 ::: tip
 The two traffic caps answer different questions: *alloc* limits what an admin

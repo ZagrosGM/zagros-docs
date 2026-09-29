@@ -59,6 +59,17 @@ the moment you do it, including ones already delivered to users.
 material is emitted at all. The page offers the official app and the user signs
 in inside it. Use it when you do not want links leaving your control.
 
+The panel-wide setting is only a **default**: every user whose access mode is
+*Default* follows it live — flipping it here moves all of them at once — while
+a user with an explicit Subscription/Application override keeps that override.
+See [Users → Delivery mode](./users.md#delivery-mode-access-mode).
+
+When a user's effective mode is application login, the portal page grows a
+**reissue** button: pressing it rotates the app username/password, kills the
+old logins and shows the new pair once on the page. The subscription URL is
+the bearer secret, so the link holder is exactly who should be able to do
+this.
+
 Use **test configuration** in the same screen to see the exact URL Zagros will
 generate before you save.
 

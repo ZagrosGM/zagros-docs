@@ -15,8 +15,8 @@ Two complete, mirrored sets of pages:
 | Examples | `examples/*.md` | `fa/examples/*.md` |
 
 * **Docs** — introduction, installation, configuration, command line, nodes,
-  cores, users, subscriptions, admins, certificates, REST API, notifications,
-  troubleshooting.
+  cores, users, applications, subscriptions, admins, certificates, REST API,
+  notifications, troubleshooting.
 * **Examples** — issue an SSL certificate, TLS for the panel, wildcard
   certificates, change a core version, block traffic with routing, backup and
   restore, custom subscription page.

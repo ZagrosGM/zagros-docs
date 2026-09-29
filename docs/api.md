@@ -28,16 +28,23 @@ Authorization: Bearer <access_token>
 The response to a successful login contains `access_token` and
 `token_type: "bearer"`. The JWT lifetime is
 `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`; request a new token after a `401`.
-Operations on nodes, cores, deployment, backup, certificates and most
-`/api/zagros/*` routes require a **sudo admin**. Ordinary admins can operate
-only on users they own.
+
+Who may call what:
+
+* **sudo admins** bypass every permission check (admin management of other
+  sudoers stays sudo-only).
+* **normal admins** need the matching entry in their
+  [permission matrix](#admin-permissions) for every `/api/zagros/*` route —
+  by default (no matrix stored) a normal admin may use every section except
+  those sudo-only areas. Operations on Marzban-compatible user routes remain
+  scoped to the users the admin owns.
 
 ## API surfaces
 
 | Surface | Path | Authentication | Purpose |
 |---|---|---|---|
 | Marzban-compatible admin | `/api/*` | admin JWT; some operations require sudo | Admins, users, Xray inbounds, system stats and compatibility nodes |
-| Native Zagros admin | `/api/zagros/*` | normally sudo JWT | Multi-core, native nodes, portal, routing, backups, security and support |
+| Native Zagros admin | `/api/zagros/*` | admin JWT; permission matrix decides (sudo bypasses) | Multi-core, applications/builds, native nodes, portal, routing, backups, security and support |
 | Subscription | `/<subscription_path>/<token>` | subscription token | Browser portal and client configuration delivery |
 | App client | `/client/v1/*` | app credentials/access token | Login-mode profile and sealed core configuration delivery |
 
@@ -119,7 +126,8 @@ curl -fsS -X POST https://panel.example.com/api/user \
 | `status` | `active` or `on_hold` | Create state. Omit for normal active creation. `on_hold` requires `on_hold_expire_duration` and no fixed expiry. |
 | `proxies` | object | Xray protocol settings: `vmess`, `vless`, `trojan`, `shadowsocks`. `{}` settings generate credentials. |
 | `inbounds` | object of protocol → tag array | Xray inbound selection. Omitted protocol tags default to all enabled inbounds for that selected proxy. |
-| `core_access` | object of core id → inbound-tag array | Optional explicit multi-core grants. Omit for the panel's API-default policy; an explicit `{}` means no extra grants. |
+| `core_access` | object of core id → inbound-tag array | Optional explicit multi-core grants. Omit for the panel's API-default policy; an explicit `{}` means no extra grants. A restricted admin may only name tags from their allowed-inbounds list. |
+| `access_mode` | `default`, `subscription` or `application` | Optional delivery mode at creation. `default`/omitted leaves the per-user override unset so the user follows the panel-wide Subscriptions setting. See [Application login and access mode](#application-login-and-access-mode). |
 | `expire` | integer Unix seconds, `0` or `null` | Expiry; zero/null is unlimited. |
 | `data_limit` | integer bytes ≥ 0 | Total quota; zero/null is unlimited. |
 | `data_limit_reset_strategy` | `no_reset`, `day`, `week`, `month`, `year` | Automatic quota reset schedule. |
@@ -184,6 +192,76 @@ the requested grants; omission keeps them.
 | `POST` | `/api/users/reset` | Reset every user's current traffic; sudo only |
 | `GET` | `/api/users/usage?start=&end=` | Aggregate user/node traffic |
 | `GET`/`DELETE` | `/api/users/expired` | List or delete users in an expiry range |
+
+### Application login and access mode
+
+Every user has a **delivery mode**: a subscription link, or a login inside the
+official application. The per-user value has three states — `default` (follow
+the panel-wide Subscriptions setting, resolved **live**), `subscription`, or
+`application`. A change to the panel-wide setting therefore applies
+immediately to every `default` user; explicit overrides always win.
+
+| Method and path | Purpose |
+|---|---|
+| `POST /api/zagros/users/{user_id}/access-mode` | Set the mode: `{"mode": "default" \| "subscription" \| "application"}` |
+| `GET /api/zagros/users/{user_id}/application-overview` | One user's Application-login state (also by username) |
+| `POST /api/zagros/users/{user_id}/app-credentials` | Issue or rotate the app username/password |
+| `GET /api/zagros/users/by-username/{username}/subscription-url` | Copy/QR URL from the portal settings source of truth |
+
+Setting the mode:
+
+```bash
+curl -fsS -X POST "https://panel.example.com/api/zagros/users/16/access-mode" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"mode": "default"}'
+```
+
+```json
+{"user_id": 16, "username": "bli3bu7z",
+ "access_mode": "default", "effective_access_mode": "subscription"}
+```
+
+* `access_mode` is the **raw** stored state (`default` = NULL, following the
+  panel); `effective_access_mode` is the mode resolved for right now.
+* Leaving `application` (to `subscription` **or** `default` while the panel
+  default is subscription) revokes the user's pending app authorities — tokens,
+  activation tickets, config grants. The grant binding itself persists, so
+  re-enabling restores access without a new bind. Responses are `200` on
+  success, `404` for an unknown user and `422` for any other mode value.
+
+Issuing app credentials (binds the user to every active application and
+creates/rotates the login):
+
+```bash
+curl -fsS -X POST "https://panel.example.com/api/zagros/users/16/app-credentials" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+```
+
+```json
+{"username": "u16.mgyhjnml", "password": "n9a_iOu_AcRcEkpte4bH"}
+```
+
+The password is returned **once** — only a hash is stored. The overview
+endpoint reports `app_username` and `has_app_credentials` without secrets:
+
+```json
+{"user_id": 16, "username": "bli3bu7z",
+ "access_mode": "default", "effective_access_mode": "application",
+ "app_username": "u16.mgyhjnml", "has_app_credentials": true,
+ "grants": [{"application_id": "2751dadd-…", "name": "qr-app4", "bound_at": "…"}],
+ "latest_builds": {"2751dadd-…": {"build_id": "…", "version": "1.0.0",
+   "build_number": 7, "status": "…", "file_count": 5}}}
+```
+
+Subscribers rotate their own app password from the portal page. The
+subscription URL is the bearer secret, so the holder of the link can call:
+
+```
+POST /sub/{token}/reissue-app          # aliases: /zagros/sub/… and /<sub_path>/…
+```
+
+Old app logins die immediately; the new pair is displayed once on the page.
+See [Applications](./applications.md) for the full app/build guide.
 
 ### IP-limit semantics
 
@@ -308,7 +386,8 @@ OpenAPI document is the field-level authority (`DOCS=true` exposes `/docs` and
 | Portal/subscriptions | `/api/zagros/settings/portal`; token/URL issue routes under `/users`; template list/upload/preview/starter/activate/delete |
 | Presence/devices/sessions | `/api/zagros/users/online`, `/sessions`, `/devices`, `/client-sessions` plus revoke/delete routes |
 | Certificates/network | `/api/zagros/certificates` including import, self-signed and ACME; `/settings/panel-network` test/save/apply/status |
-| Users/operations | `/api/zagros/users/bulk-create`, `/users/delete-by-status`, dashboard snapshot and legacy migration |
+| Users/operations | `/api/zagros/users/bulk-create`, `/users/delete-by-status`, access-mode/app-credentials/overview routes, dashboard snapshot and legacy migration |
+| Applications/builds | `/api/zagros/applications` (CRUD, icon, keys), `/applications/{id}/grants`, `/applications/{id}/builds`; `/builds*`, `/build-credentials*`, `/builder/workers*` — see [Applications](./applications.md) |
 | Backup/restore | `/api/zagros/backup/artifacts`, `/backup/create`, `/backup/service`; `/restore/upload`, `/restore/inspect`, `/restore/apply` |
 | Security | `/api/zagros/security`, `/security/credentials`, `/security/sessions`, `/security/token-lifetime` |
 | Support | `/api/zagros/support/config`, `/support/test`, `/support/ticket` |
@@ -342,6 +421,35 @@ FastAPI errors use `{"detail": ...}` (validation errors use a detail array).
 | `422` | Request schema/field validation failed |
 | `502` | A node/core/upstream service rejected the operation |
 | `503` | Required runtime/database/authentication service is unavailable |
+
+## Admin permissions
+
+`POST /api/admin` and `PUT /api/admin/{username}` accept a **permission
+document** for non-sudo admins (field `permissions`; `null` = the default
+below):
+
+```json
+{
+  "v": 1,
+  "sections": {
+    "users": "edit", "templates": "view", "subscriptions": "hidden",
+    "monitoring": "view"
+  },
+  "inbounds": ["VLESS TCP REALITY", "hy2-main"]
+}
+```
+
+| Rule | Behaviour |
+|---|---|
+| `sections` | One of `hidden` / `view` / `edit` per panel section (`overview`, `users`, `templates`, `subscriptions`, `applications`, `nodes`, `cores`, `routing`, `outbounds`, `inbounds`, `hosts`, `dns`, `certificates`, `monitoring`, `statistics`, `support`, `settings`, `advanced`). A section missing from a stored document stays at `edit`. |
+| `inbounds` | The only inbound tags this admin may grant on user create/modify (`null` = unrestricted). `GET /api/zagros/inbounds` returns the filtered catalog; a forbidden tag is rejected with `422`, and an *empty* selection — which normally means "all inbounds" — is rejected for restricted admins. |
+| `PUT` semantics | Present `permissions` replaces the whole document; the field absent keeps the current one; explicit `null` resets to the default. |
+| Enforcement | `GET`/`HEAD` on a section need `view`; every other method needs `edit`. Sudo admins bypass the matrix entirely. Admin management itself stays sudo-only. |
+| `is_sudo` | `PUT /api/admin/{username}` now stores `false` as well (demotion). A sudo admin may edit **another** sudoer; demoting **yourself** is rejected with `403`. |
+
+The dashboard mirrors the same matrix: hidden sections disappear from the
+navigation and cannot be deep-linked, and write buttons are removed where the
+admin lacks `edit`.
 
 ::: tip
 Prefer the API to direct database writes. Zagros also owns projections,
